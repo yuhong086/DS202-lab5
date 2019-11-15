@@ -1,9 +1,10 @@
 ---
 title: "Lab5"
-author: "Haoxuan Cai"
+author: "Haoxuan Cai,yuhong"
 date: "11/14/2019"
 output: html_document
 ---
+github yuhong086/ds202 lab5
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
