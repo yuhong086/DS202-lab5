@@ -1,0 +1,135 @@
+---
+title: "Lab5"
+author: "Haoxuan Cai"
+date: "11/14/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Processing the data
+
+1.
+
+```{r}
+diabetes = read.table('diabetes.txt',header=TRUE)
+head(diabetes)
+```
+
+2.
+
+```{r}
+diabetes$frame = replace(diabetes$frame, diabetes$frame == "", NA)
+diabetes$frame = droplevels(diabetes$frame)
+```
+
+3.
+```{r}
+diabetes$id = NULL
+diabetes$bp.2s = NULL
+diabetes$bp.2d = NULL
+diabetes_reduced = diabetes
+```
+
+4.
+```{r}
+index1.na=apply(is.na(diabetes_reduced), 1, any)
+diabetes_clean = na.omit(diabetes_reduced)
+index2.na=apply(is.na(diabetes_clean), 1, any)
+summary(index2.na)
+```
+
+
+5. 
+I use summary to collect the information the output is false and contain 366 data.
+
+### Exploring and transforming data
+
+6.
+```{r}
+library(ggplot2)
+ggplot(diabetes_clean, aes(x=glyhb)) + geom_histogram() + labs(title="Spread of glyhb variable") 
+```
+we could use log fuction to fit the variable. It could not change the skewed in fact, but could make it easier to interpret and visiualized.
+
+7.
+```{r}
+diabetes_clean$glyhb_star = log(diabetes_clean$glyhb)
+ggplot(diabetes_clean, aes(x=glyhb_star)) + geom_histogram() + labs(title="Spread of 'glyhb_star' Variable", x="log(glyhb)")
+```
+Based on the plot, it is more symmetric by add log fuction on the variable.
+
+8.
+```{r}
+library(dplyr)
+diabetes_clean %>% group_by(weight) %>% summarise(mean.glyhb = mean(glyhb_star))
+diabetes_clean %>% group_by(age) %>% summarise(mean.glyhb = mean(glyhb_star))
+diabetes_clean %>% group_by(gender) %>% summarise(mean.glyhb = mean(glyhb_star))
+```
+
+
+
+### Visualizations
+
+10.
+
+```{r}
+Q10= diabetes_clean %>% group_by(frame,location) %>% summarise (mean.glyhb_star= mean(glyhb_star))
+ggplot(Q10,aes(x=frame, y=mean.glyhb_star, color=location)) + geom_point() + labs(title="Mean log(glyhb) by frame")
+```
+
+11.
+```{r}
+ggplot(diabetes_clean,aes(x=ratio, y=glyhb_star)) + geom_point() + labs(title="Ratio by log(glyhb)")
+ggplot(diabetes_clean,aes(x=bp.1s, y=glyhb_star)) + geom_point() + labs(title="Blood Pressure by log(glyhb)")
+ggplot(diabetes_clean,aes(x=age, y=glyhb_star)) + geom_point() + labs(title="Age by log(glyhb)")
+ggplot(diabetes_clean,aes(x=gender, y=glyhb_star)) + geom_boxplot() + labs(title="Gender by log(glyhb")
+ggplot(diabetes_clean,aes(x=hip, y=glyhb_star)) + geom_point() + labs(title="Hip Measurement (in) by log(glyhb)")
+ggplot(diabetes_clean,aes(x=weight, y=glyhb_star)) + geom_point() + labs(title="Weight by log(glyhb")
+```
+
+12.
+```{r}
+ggplot(diabetes_clean,aes(y=hip,x=waist,color=frame, shape=frame)) + geom_point() 
+ggplot(diabetes_clean,aes(y=hip,x=waist)) + geom_boxplot() + facet_wrap(~frame)
+```
+
+13.
+gather is a function to summarize multiple columns information in to one. spread is spread a key value across multiple columns.
+
+14.
+Yes. As interpret above, they are opposite functions.
+
+
+### Regression models
+
+15.
+```{r}
+fit = lm(glyhb ~stab.glu + age + waist + ratio+ factor(frame),data=diabetes_clean)
+ summary(fit)
+```
+Based on the plot, F-statistic is 84.76 with p-value < 0.05 which 0.05 is the alpha value. Thus, it is a meaningful model and it is significsnt.
+However, I could say the r^2 is low, there are about 58.62% data could be interpret by this model. Even after adjusted is only has 57.93% data could do so. Considering the variable "waist", "factor(frame)medium", "factor(frame)small " are not significant due to high p-value(which is greater than 0.05), the model could be optimized.
+
+16.
+As one unit increase in stab.glu with all other variables hold constant, then the predicted glyhb_star will increase by .0035182. Respectively age, waist and ratio variables will increase .0033632, .0047925, and .0219341. For the factor variables an individual with a medium frame is predicted to have .0309167 more glyhb_star than the baseline of the large frame.For the small frame the model predicts .0131840 more than the baseline of the large frame. 
+
+17.
+```{r}
+fit$fitted.values
+```
+They are predictions of glyhb_star by information above.
+
+Based on the model above, when a item satisfied stab.glu=90, age=35, waist=30, ratio=5.1 and a small frame, the predicted glyhb_star would be 4.870237 
+
+18.
+Prediction is not the real data. inference is.
+
+19. 
+Consider knn model is affacted by the amount of neighbors, the data could be similar. But is not as same as linear model, when a factor change it change dramatically.
+
+### Reflection
+
+My review not changed. I am a senior stat major students and I feel like it is kind of similar when I deal with other stat courses. The most suprising things about us is the steps of data science deal with data are the same as other projects I done before such as stat404. The most challenging part is leaning new package in r such as dpylr. It is powerful and useful. We are enjoy that teacher mentioned some new package and introduce it to us. After class we use the package on some certain example and knew how to deal with it in certain circumstance by self-learning. We are happy and enjoy it.
